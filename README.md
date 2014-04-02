@@ -13,15 +13,9 @@ following conveniences on top of those libraries:
     `traceL` and `traceShowL`.  These use 'unsafePerformIO' in order to act as
     direct replacements, so the usual caveats apply.
 
-  - STM variants: `debugS`, `logS`, `warnS`, `errorS`, `traceS` and
-    `traceShowS`.  These log to a tracing buffer until the transaction is
-    completed, at which point they are logged in IO.  This means that logging
-    statements will be delayed, and may well be duplicated if the transaction
-    has retried.
-
   - A global function, `setDebugLevel`, which uses a global `IORef` to record
     the logging level, saving you from having to carry around the notion of
     "verbosity level" in a Reader environment.
 
-  - A set of "timed" variants, 'timedDebug', 'timedLog', 'timedWarn', which
-    report how long the specified action took to execute in wall-clock time.
+  - A set of "timed" variants, 'timedLog' and 'timedDebug', which report how
+    long the specified action took to execute in wall-clock time.
