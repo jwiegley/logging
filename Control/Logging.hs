@@ -1,5 +1,14 @@
 {-# OPTIONS_GHC -Wall -fno-warn-orphans #-}
 
+-- | Quick example of how to use this module:
+--
+-- @import Control.Logging
+--
+-- main = withStdoutLogging $ do
+--     log "This is a log message!"
+--     timedLog "This is a timed log message!" $ threadDelay 100000
+-- @
+
 module Control.Logging
     ( log
     , warn
