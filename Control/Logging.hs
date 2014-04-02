@@ -107,10 +107,11 @@ instance MonadLogger IO where
     monadLoggerLog = logger
 
 -- | Synonym for 'Control.Monad.Logger.logInfoN'.  This module provides a
---   'MonadLogger' instance for IO, so this functions can be used directly in
+--   'MonadLogger' instance for IO, so this function can be used directly in
 --   IO.  The only requirement is that you must surround the body of your
 --   @main@ function with a call to 'withStdoutLogging' or
---   'withStderrLogging', to ensure that all logging buffers are flushed.
+--   'withStderrLogging', to ensure that all logging buffers are properly
+--   flushed on exit.
 log :: MonadLogger m => Text -> m ()
 log = logInfoN
 
