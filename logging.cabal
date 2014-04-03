@@ -51,6 +51,7 @@ Library
       , transformers         >= 0.3.0.0
       , lifted-base          >= 0.2.2.0
       , vector-space         >= 0.8.6
+      , pcre-light           >= 0.4
     exposed-modules:
         Control.Logging
     default-extensions: 
@@ -69,5 +70,6 @@ test-suite test
       , logging
       , unix                 >= 2.5.1.1
       , hspec                >= 1.4
+      , monad-logger         >= 0.3.4.0
     default-extensions: 
         OverloadedStrings

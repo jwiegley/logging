@@ -1,8 +1,9 @@
 module Main where
 
-import Control.Exception
 import Control.Concurrent
+import Control.Exception
 import Control.Logging
+import Control.Monad.Logger
 import Prelude hiding (log)
 import Test.Hspec
 
@@ -11,7 +12,7 @@ tryAny = try
 
 main :: IO ()
 main = hspec $ do
-    describe "simple logging" $
+    describe "simple logging" $ do
         it "logs output" $ (withStdoutLogging :: IO () -> IO ())  $ do
             log "Hello, world!"
             timedLog "Did a good thing" $ threadDelay 100000
@@ -19,3 +20,7 @@ main = hspec $ do
                 threadDelay 100000 >> error "foo"
             _ <- tryAny $ errorL "Uh oh"
             return ()
+
+        it "can be passed to runLoggingT" $ do
+            flip runLoggingT loggingLogger $ (log "Hello" :: LoggingT IO ())
+            flushLog
