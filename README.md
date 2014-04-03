@@ -7,7 +7,9 @@ following conveniences on top of those libraries:
     log from IO to the console.  If you need to log to other sources, or to
     make logging compile-time optional, use `monad-logger` directly.
 
-  - A set of shorter functions to type: `debug`, `log`, `warn`.
+  - A set of shorter functions to type: 'debug', 'log', 'warn', plus others
+    that flush after each message, or which allow providing a message source
+    string.
 
   - Logging variants of `error`, `trace` and `traceShow`, called `errorL`,
     `traceL` and `traceShowL`.  These use 'unsafePerformIO' in order to act as
