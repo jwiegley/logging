@@ -54,9 +54,9 @@ module Control.Logging
     , withStderrLogging
     , flushLog
     , loggingLogger
-    , setDebugLevel
-    , setLogFormat
-    , setDebugSourceRegexp
+    , setLogLevel
+    , setLogTimeFormat
+    , setDebugSourceRegex
     ) where
 
 import Control.Exception.Lifted
@@ -84,21 +84,21 @@ logLevel = unsafePerformIO $ newIORef LevelDebug
 
 -- | Set the verbosity level.  Messages at our higher than this level are
 --   displayed.  It defaults to 'LevelDebug'.
-setDebugLevel :: LogLevel -> IO ()
-setDebugLevel = atomicWriteIORef logLevel
+setLogLevel :: LogLevel -> IO ()
+setLogLevel = atomicWriteIORef logLevel
 
 logSet :: IORef LoggerSet
 {-# NOINLINE logSet #-}
 logSet = unsafePerformIO $
     newIORef (error "Must call withStdoutLogging or withStderrLogging")
 
-logFormat :: IORef String
-{-# NOINLINE logFormat #-}
-logFormat = unsafePerformIO $ newIORef "%Y %b-%d %H:%M:%S%Q"
+logTimeFormat :: IORef String
+{-# NOINLINE logTimeFormat #-}
+logTimeFormat = unsafePerformIO $ newIORef "%Y %b-%d %H:%M:%S%Q"
 
 -- | Set the format used for log timestamps.
-setLogFormat :: String -> IO ()
-setLogFormat = atomicWriteIORef logFormat
+setLogTimeFormat :: String -> IO ()
+setLogTimeFormat = atomicWriteIORef logTimeFormat
 
 debugSourceRegexp :: IORef (Maybe Regex)
 {-# NOINLINE debugSourceRegexp #-}
@@ -107,8 +107,8 @@ debugSourceRegexp = unsafePerformIO $ newIORef Nothing
 -- | When printing 'LevelDebug' messages, only display those matching the
 --   given regexp applied to the Source parameter.  Calls to 'debug' without a
 --   source parameter are regarded as having a source of @""@.
-setDebugSourceRegexp :: String -> IO ()
-setDebugSourceRegexp =
+setDebugSourceRegex :: String -> IO ()
+setDebugSourceRegex =
     atomicWriteIORef debugSourceRegexp
         . Just
         . flip compile []
@@ -129,7 +129,7 @@ loggingLogger _loc !src !lvl str = do
                 Just re -> isJust (match re (encodeUtf8 src) [])
         when willLog $ do
             now <- getCurrentTime
-            fmt <- readIORef logFormat
+            fmt <- readIORef logTimeFormat
             let stamp = formatTime defaultTimeLocale fmt now
             set <- readIORef logSet
             pushLogStr set
