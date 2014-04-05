@@ -14,7 +14,7 @@ Description:
   provides the following conveniences on top of those libraries:
   .
   - A 'MonadLogger' instance for 'IO'.  Usually this is bad for libraries, but
-    can be very convenience for application writers who know they always want
+    can be very convenient for application writers who know they always want
     to log from IO to the console.  If you need to log to other sources, or to
     make logging compile-time optional, use @monad-logger@ directly.
   .
