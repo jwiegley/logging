@@ -22,11 +22,11 @@ main = hspec $ do
             return ()
 
         it "can be passed to runLoggingT" $ do
-            flip runLoggingT loggingLogger $ (log "Hello" :: LoggingT IO ())
+            flip runLoggingT loggingLogger (log "Hello" :: LoggingT IO ())
             flushLog
 
         it "supports using debug classes" $ do
-            setDebugSourceRegexp "foo\\..*"
+            setDebugSourceRegex "foo\\..*"
             withStdoutLogging $ do
                 debugS "foo" "This is a foo message"
                 debugS "foo.bar" "This is a foo.bar message"

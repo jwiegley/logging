@@ -52,6 +52,7 @@ module Control.Logging
     , timedDebugEndS'
     , withStdoutLogging
     , withStderrLogging
+    , withFileLogging
     , flushLog
     , loggingLogger
     , setLogLevel
@@ -163,6 +164,13 @@ withStderrLogging :: (MonadBaseControl IO m, MonadIO m) => m a -> m a
 withStderrLogging f = do
     liftIO $ do
         set <- newStderrLoggerSet defaultBufSize
+        atomicWriteIORef logSet set
+    f `finally` flushLog
+
+withFileLogging :: (MonadBaseControl IO m, MonadIO m) => FilePath -> m a -> m a
+withFileLogging path f = do
+    liftIO $ do
+        set <- newFileLoggerSet defaultBufSize path
         atomicWriteIORef logSet set
     f `finally` flushLog
 
