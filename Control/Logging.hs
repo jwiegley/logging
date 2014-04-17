@@ -65,13 +65,12 @@ import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Logger
 import Control.Monad.Trans.Control
-import Data.AffineSpace
 import Data.IORef
 import Data.Maybe (isJust)
 import Data.Monoid
 import Data.Text as T
 import Data.Text.Encoding as T
-import Data.Thyme
+import Data.Time
 import Debug.Trace
 import Prelude hiding (log)
 import System.IO.Unsafe
@@ -293,7 +292,7 @@ doTimedLog logf wrapped msg f = do
   where
     wrapup start m = do
         end <- liftIO getCurrentTime
-        logf $ msg <> m <> " [" <> pack (show (end .-. start)) <> "]"
+        logf $ msg <> m <> " [" <> pack (show (diffUTCTime end start)) <> "]"
 
 -- | Output a logging message both before an action begins, and after it ends,
 --   reporting the total length of time.  If an exception occurred, it is also
