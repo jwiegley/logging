@@ -65,6 +65,7 @@ import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Logger
 import Control.Monad.Trans.Control
+import Data.Functor ((<$))
 import Data.IORef
 import Data.Maybe (isJust)
 import Data.Monoid
@@ -277,11 +278,11 @@ traceShowSL' src x =
     in trace (unsafePerformIO (logDebugNS src (pack s) >> flushLog) `seq` s)
 
 doTimedLog :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-         => (Text -> m ()) -> Bool -> Text -> m () -> m ()
+         => (Text -> m ()) -> Bool -> Text -> m a -> m a
 doTimedLog logf wrapped msg f = do
     start <- liftIO getCurrentTime
     when wrapped $ logf $ msg <> "..."
-    f `catch` \e -> do
+    res <- f `catch` \e -> do
         let str = show (e :: SomeException)
         wrapup start $ pack $
             if wrapped
@@ -289,6 +290,7 @@ doTimedLog logf wrapped msg f = do
             else " (FAIL: " ++ str ++ ")"
         throwIO e
     wrapup start $ if wrapped then "...done" else ""
+    return res
   where
     wrapup start m = do
         end <- liftIO getCurrentTime
@@ -298,68 +300,68 @@ doTimedLog logf wrapped msg f = do
 --   reporting the total length of time.  If an exception occurred, it is also
 --   reported.
 timedLog :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-         => Text -> m () -> m ()
+         => Text -> m a -> m a
 timedLog = doTimedLog log True
 
 timedLog' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-          => Text -> m () -> m ()
-timedLog' msg f = doTimedLog log True msg f >> flushLog
+          => Text -> m a -> m a
+timedLog' msg f = doTimedLog log True msg f >>= (<$ flushLog)
 
 timedLogS :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-          => Text -> Text -> m () -> m ()
+          => Text -> Text -> m a -> m a
 timedLogS src = doTimedLog (logS src) True
 
 timedLogS' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-           => Text -> Text -> m () -> m ()
-timedLogS' src msg f = doTimedLog (logS src) True msg f >> flushLog
+           => Text -> Text -> m a -> m a
+timedLogS' src msg f = doTimedLog (logS src) True msg f >>= (<$ flushLog)
 
 -- | Like 'timedLog', except that it does only logs when the action has
 --   completed or failed after it is done.
 timedLogEnd :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-          => Text -> m () -> m ()
+          => Text -> m a -> m a
 timedLogEnd = doTimedLog log False
 
 timedLogEnd' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-             => Text -> m () -> m ()
-timedLogEnd' msg f = doTimedLog log False msg f >> flushLog
+             => Text -> m a -> m a
+timedLogEnd' msg f = doTimedLog log False msg f >>= (<$ flushLog)
 
 timedLogEndS :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-             => Text -> Text -> m () -> m ()
+             => Text -> Text -> m a -> m a
 timedLogEndS src = doTimedLog (logS src) False
 
 timedLogEndS' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-              => Text -> Text -> m () -> m ()
-timedLogEndS' src msg f = doTimedLog (logS src) False msg f >> flushLog
+              => Text -> Text -> m a -> m a
+timedLogEndS' src msg f = doTimedLog (logS src) False msg f >>= (<$ flushLog)
 
 -- | A debug variant of 'timedLog'.
 timedDebug :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-           => Text -> m () -> m ()
+           => Text -> m a -> m a
 timedDebug = doTimedLog debug True
 
 timedDebug' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-             => Text -> m () -> m ()
-timedDebug' msg f = doTimedLog debug True msg f >> flushLog
+             => Text -> m a -> m a
+timedDebug' msg f = doTimedLog debug True msg f >>= (<$ flushLog)
 
 timedDebugS :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-            => Text -> Text -> m () -> m ()
+            => Text -> Text -> m a -> m a
 timedDebugS src = doTimedLog (debugS src) True
 
 timedDebugS' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-             => Text -> Text -> m () -> m ()
-timedDebugS' src msg f = doTimedLog (debugS src) True msg f >> flushLog
+             => Text -> Text -> m a -> m a
+timedDebugS' src msg f = doTimedLog (debugS src) True msg f >>= (<$ flushLog)
 
 timedDebugEnd :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-              => Text -> m () -> m ()
+              => Text -> m a -> m a
 timedDebugEnd = doTimedLog debug False
 
 timedDebugEnd' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-               => Text -> m () -> m ()
-timedDebugEnd' msg f = doTimedLog debug False msg f >> flushLog
+               => Text -> m a -> m a
+timedDebugEnd' msg f = doTimedLog debug False msg f >>= (<$ flushLog)
 
 timedDebugEndS :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-               => Text -> Text -> m () -> m ()
+               => Text -> Text -> m a -> m a
 timedDebugEndS src = doTimedLog (debugS src) False
 
 timedDebugEndS' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-                => Text -> Text -> m () -> m ()
-timedDebugEndS' src msg f = doTimedLog (debugS src) False msg f >> flushLog
+                => Text -> Text -> m a -> m a
+timedDebugEndS' src msg f = doTimedLog (debugS src) False msg f >>= (<$ flushLog)
