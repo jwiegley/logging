@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wall -fno-warn-orphans #-}
+{-# LANGUAGE CPP #-}
 
 -- | Quick example of how to use this module:
 --
@@ -75,7 +76,11 @@ import Data.Time
 import Debug.Trace
 import Prelude hiding (log)
 import System.IO.Unsafe
+#if MIN_VERSION_time (1,5,0)
 import System.Locale hiding (defaultTimeLocale)
+#else
+import System.Locale
+#endif
 import System.Log.FastLogger
 import Text.Regex.PCRE.Light
 
