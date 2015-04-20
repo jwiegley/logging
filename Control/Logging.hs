@@ -75,7 +75,7 @@ import Data.Time
 import Debug.Trace
 import Prelude hiding (log)
 import System.IO.Unsafe
-import System.Locale
+import System.Locale hiding (defaultTimeLocale)
 import System.Log.FastLogger
 import Text.Regex.PCRE.Light
 
