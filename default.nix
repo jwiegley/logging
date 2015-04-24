@@ -1,19 +1,16 @@
-{ cabal, binary, fastLogger, hspec, liftedBase, monadControl
-, monadLogger, pcreLight, text, time, transformers, vectorSpace
+{ mkDerivation, base, binary, bytestring, fast-logger, hspec
+, lifted-base, monad-control, monad-logger, old-locale, pcre-light
+, stdenv, text, time, transformers, unix
 }:
-
-cabal.mkDerivation (self: {
+mkDerivation {
   pname = "logging";
-  version = "1.3.0";
+  version = "2.2.0";
   src = ./.;
   buildDepends = [
-    binary fastLogger liftedBase monadControl monadLogger pcreLight
-    text time transformers vectorSpace
+    base binary bytestring fast-logger lifted-base monad-control
+    monad-logger old-locale pcre-light text time transformers
   ];
-  testDepends = [ hspec monadLogger ];
-  meta = {
-    description = "Simplified logging in IO for application writers";
-    license = self.stdenv.lib.licenses.mit;
-    platforms = self.ghc.meta.platforms;
-  };
-})
+  testDepends = [ base hspec monad-logger unix ];
+  description = "Simplified logging in IO for application writers";
+  license = stdenv.lib.licenses.mit;
+}
