@@ -14,6 +14,7 @@ main = hspec $ do
     describe "simple logging" $ do
         it "logs output" $ (withStdoutLogging :: IO () -> IO ())  $ do
             log "Hello, world!"
+            warnS "test-suite" "you've been warned"
             timedLog "Did a good thing" $ threadDelay 100000
             _ <- tryAny $ timedLog "Did a bad thing" $
                 threadDelay 100000 >> error "foo"
