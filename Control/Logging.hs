@@ -274,7 +274,7 @@ traceShowSL' src x =
     in trace (unsafePerformIO (debugS src (pack s) >> flushLog) `seq` s)
 
 doTimedLog :: (MonadBaseControl IO m, MonadIO m)
-         => (Text -> IO ()) -> Bool -> Text -> m a -> m a
+           => (Text -> IO ()) -> Bool -> Text -> m a -> m a
 doTimedLog logf wrapped msg f = do
     start <- liftIO getCurrentTime
     when wrapped $ (liftIO . logf) $ msg <> "..."
