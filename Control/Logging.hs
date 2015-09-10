@@ -119,10 +119,6 @@ setDebugSourceRegex =
         . encodeUtf8
         . T.pack
 
--- | This function is used to implement 'monadLoggerLog' for the IO instance.
---   You may reuse it if you wish, or it can be passed as an argument to
---   'runLoggingT' -- in which case you must remember to call 'flushLog'
---   before the program exits.
 loggingLogger :: ToLogStr msg => LogLevel -> LogSource -> msg -> IO ()
 loggingLogger !lvl !src str = do
     maxLvl <- readIORef logLevel
@@ -185,8 +181,7 @@ flushLog = liftIO $ do
     set <- readIORef logSet
     flushLogStr set
 
--- | TODO -- is this still true?? -- The only requirement is that you must
--- surround the body of your @main@ function with a call to
+-- You must surround the body of your @main@ function with a call to
 -- 'withStdoutLogging' or 'withStderrLogging', to ensure that all logging
 -- buffers are properly flushed on exit.
 log :: Text -> IO ()
