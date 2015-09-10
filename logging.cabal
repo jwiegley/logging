@@ -9,14 +9,9 @@ Build-Type:          Simple
 Cabal-Version:       >=1.10
 Category:            System
 Description:
-  @logging@ is a wrapper around @monad-logger@ and @fast-logger@ which makes
-  it easy to log from any 'MonadLogger' environment, or from 'IO'.  It
-  provides the following conveniences on top of those libraries:
-  .
-  - A 'MonadLogger' instance for 'IO'.  Usually this is bad for libraries, but
-    can be very convenient for application writers who know they always want
-    to log from IO to the console.  If you need to log to other sources, or to
-    make logging compile-time optional, use @monad-logger@ directly.
+  @logging@ is a wrapper around @fast-logger@ which makes
+  it easy to log from 'IO'. It provides the following conveniences on top of
+  those libraries:
   .
   - A set of shorter functions to type: 'debug', 'log', 'warn', plus others
     that flush after each message, or which allow providing a message source
@@ -48,14 +43,13 @@ Library
       , old-locale           >= 1.0.0.5
       , time                 >= 1.4
       , monad-control        >= 0.3.2.3
-      , monad-logger         >= 0.3.4.0
       , text                 >= 0.11.3.1
       , transformers         >= 0.3.0.0
       , lifted-base          >= 0.2.2.0
       , pcre-light           >= 0.4
     exposed-modules:
         Control.Logging
-    default-extensions: 
+    default-extensions:
         BangPatterns
         FlexibleContexts
         OverloadedStrings
@@ -71,6 +65,5 @@ test-suite test
       , logging
       , unix                 >= 2.5.1.1
       , hspec                >= 1.4
-      , monad-logger         >= 0.3.4.0
-    default-extensions: 
+    default-extensions:
         OverloadedStrings
