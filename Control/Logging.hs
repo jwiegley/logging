@@ -64,7 +64,6 @@ module Control.Logging
 import Control.Exception.Lifted
 import Control.Monad
 import Control.Monad.IO.Class
-import Control.Monad.Logger
 import Control.Monad.Trans.Control
 import Data.Functor ((<$))
 import Data.IORef
@@ -76,13 +75,13 @@ import Data.Time
 import Debug.Trace
 import Prelude hiding (log)
 import System.IO.Unsafe
-#if MIN_VERSION_time (1,5,0)
-import System.Locale hiding (defaultTimeLocale)
-#else
-import System.Locale
-#endif
 import System.Log.FastLogger
 import Text.Regex.PCRE.Light
+
+data LogLevel = LevelDebug | LevelInfo | LevelWarn | LevelError | LevelOther Text
+    deriving (Eq, Prelude.Show, Prelude.Read, Ord)
+
+type LogSource = Text
 
 logLevel :: IORef LogLevel
 {-# NOINLINE logLevel #-}
@@ -121,12 +120,8 @@ setDebugSourceRegex =
         . encodeUtf8
         . T.pack
 
--- | This function is used to implement 'monadLoggerLog' for the IO instance.
---   You may reuse it if you wish, or it can be passed as an argument to
---   'runLoggingT' -- in which case you must remember to call 'flushLog'
---   before the program exits.
-loggingLogger :: ToLogStr msg => Loc -> LogSource -> LogLevel -> msg -> IO ()
-loggingLogger _loc !src !lvl str = do
+loggingLogger :: ToLogStr msg => LogLevel -> LogSource -> msg -> IO ()
+loggingLogger !lvl !src str = do
     maxLvl <- readIORef logLevel
     when (lvl >= maxLvl) $ do
         mre <- readIORef debugSourceRegexp
@@ -187,106 +182,103 @@ flushLog = liftIO $ do
     set <- readIORef logSet
     flushLogStr set
 
-instance MonadLogger IO where
-    monadLoggerLog = loggingLogger
+-- You must surround the body of your @main@ function with a call to
+-- 'withStdoutLogging' or 'withStderrLogging', to ensure that all logging
+-- buffers are properly flushed on exit.
+log :: Text -> IO ()
+log = loggingLogger LevelInfo ""
 
--- | Synonym for 'Control.Monad.Logger.logInfoN'.  This module provides a
---   'MonadLogger' instance for IO, so this function can be used directly in
---   IO.  The only requirement is that you must surround the body of your
---   @main@ function with a call to 'withStdoutLogging' or
---   'withStderrLogging', to ensure that all logging buffers are properly
---   flushed on exit.
-log :: MonadLogger m => Text -> m ()
-log = logInfoN
+logError :: Text -> Text -> IO ()
+logError = loggingLogger LevelError
 
-logS :: MonadLogger m => Text -> Text -> m ()
-logS = logInfoNS
+logS :: Text -> Text -> IO ()
+logS = loggingLogger LevelInfo
 
 -- | The apostrophe varients of the logging functions flush the log after each
 --   message.
-log' :: (MonadLogger m, MonadIO m) => Text -> m ()
-log' msg = log msg >> flushLog
+log' :: MonadIO m => Text -> m ()
+log' msg = (liftIO $ log msg) >> flushLog
 
-logS' :: (MonadLogger m, MonadIO m) => Text -> Text -> m ()
-logS' src msg = logS src msg >> flushLog
+logS' :: MonadIO m => Text -> Text -> m ()
+logS' src msg = (liftIO $ logS src msg) >> flushLog
 
-debug :: MonadLogger m => Text -> m ()
-debug = logDebugN
+debug :: Text -> IO ()
+debug = debugS ""
 
-debugS :: MonadLogger m => Text -> Text -> m ()
-debugS = logDebugNS
+debugS :: Text -> Text -> IO ()
+debugS = loggingLogger LevelDebug
 
-debug' :: (MonadLogger m, MonadIO m) => Text -> m ()
-debug' msg = debug msg >> flushLog
+debug' :: MonadIO m => Text -> m ()
+debug' msg = (liftIO $ debug msg) >> flushLog
 
-debugS' :: (MonadLogger m, MonadIO m) => Text -> Text -> m ()
-debugS' src msg = debugS src msg >> flushLog
+debugS' :: MonadIO m => Text -> Text -> m ()
+debugS' src msg = (liftIO $ debugS src msg) >> flushLog
 
-warn :: MonadLogger m => Text -> m ()
-warn = logWarnN
+warn :: Text -> IO ()
+warn = warnS ""
 
-warnS :: MonadLogger m => Text -> Text -> m ()
-warnS = logWarnNS
+warnS :: Text -> Text -> IO ()
+warnS = loggingLogger LevelWarn
 
-warn' :: (MonadLogger m, MonadIO m) => Text -> m ()
-warn' msg = warn msg >> flushLog
+warn' :: MonadIO m => Text -> m ()
+warn' msg = (liftIO $ warn msg) >> flushLog
 
-warnS' :: (MonadLogger m, MonadIO m) => Text -> Text -> m ()
-warnS' src msg = warnS src msg >> flushLog
+warnS' :: MonadIO m => Text -> Text -> m ()
+warnS' src msg = (liftIO $ warnS src msg) >> flushLog
 
 -- | A logging variant of 'error' which uses 'unsafePerformIO' to output a log
 --   message before calling 'error'.
 errorL :: Text -> a
-errorL str = error (unsafePerformIO (logErrorN str) `seq` unpack str)
+errorL str = error (unsafePerformIO (logError "" str) `seq` unpack str)
 
 errorL' :: Text -> a
-errorL' str = error (unsafePerformIO (logErrorN str >> flushLog) `seq` unpack str)
+errorL' str = error (unsafePerformIO (logError "" str >> flushLog) `seq` unpack str)
 
 errorSL :: Text -> Text -> a
-errorSL src str = error (unsafePerformIO (logErrorNS src str) `seq` unpack str)
+errorSL src str = error (unsafePerformIO (logError src str) `seq` unpack str)
 
 errorSL' :: Text -> Text -> a
 errorSL' src str =
-    error (unsafePerformIO (logErrorNS src str >> flushLog) `seq` unpack str)
+    error (unsafePerformIO (logError src str >> flushLog) `seq` unpack str)
 
 traceL :: Text -> a -> a
-traceL str = trace (unsafePerformIO (logDebugN str) `seq` unpack str)
+traceL str = trace (unsafePerformIO (debug str) `seq` unpack str)
 
 traceL' :: Text -> a -> a
-traceL' str = trace (unsafePerformIO (logDebugN str >> flushLog) `seq` unpack str)
+traceL' str = trace (unsafePerformIO (debug str >> flushLog) `seq` unpack str)
 
 traceSL :: Text -> Text -> a -> a
-traceSL src str = trace (unsafePerformIO (logDebugNS src str) `seq` unpack str)
+traceSL src str = trace (unsafePerformIO (debugS src str) `seq` unpack str)
 
 traceSL' :: Text -> Text -> a -> a
 traceSL' src str =
-    trace (unsafePerformIO (logDebugNS src str >> flushLog) `seq` unpack str)
+    trace (unsafePerformIO (debugS src str >> flushLog) `seq` unpack str)
 
 traceShowL :: Show a => a -> a1 -> a1
 traceShowL x =
     let s = show x
-    in trace (unsafePerformIO (logDebugN (pack s)) `seq` s)
+    in trace (unsafePerformIO (debug (pack s)) `seq` s)
 
 traceShowL' :: Show a => a -> a1 -> a1
 traceShowL' x =
     let s = show x
-    in trace (unsafePerformIO (logDebugN (pack s) >> flushLog) `seq` s)
+    in trace (unsafePerformIO (debug (pack s) >> flushLog) `seq` s)
 
 traceShowSL :: Show a => Text -> a -> a1 -> a1
 traceShowSL src x =
     let s = show x
-    in trace (unsafePerformIO (logDebugNS src (pack s)) `seq` s)
+    in trace (unsafePerformIO (debugS src (pack s)) `seq` s)
 
 traceShowSL' :: Show a => Text -> a -> a1 -> a1
 traceShowSL' src x =
     let s = show x
-    in trace (unsafePerformIO (logDebugNS src (pack s) >> flushLog) `seq` s)
+    in trace (unsafePerformIO (debugS src (pack s) >> flushLog) `seq` s)
 
-doTimedLog :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
-         => (Text -> m ()) -> Bool -> Text -> m a -> m a
+doTimedLog :: (MonadBaseControl IO m, MonadIO m)
+           => (Text -> IO ()) -> Bool -> Text -> m a -> m a
 doTimedLog logf wrapped msg f = do
     start <- liftIO getCurrentTime
-    when wrapped $ logf $ msg <> "..."
+    when wrapped $ (liftIO . logf) $ msg <> "..."
     res <- f `catch` \e -> do
         let str = show (e :: SomeException)
         wrapup start $ pack $
@@ -299,74 +291,74 @@ doTimedLog logf wrapped msg f = do
   where
     wrapup start m = do
         end <- liftIO getCurrentTime
-        logf $ msg <> m <> " [" <> pack (show (diffUTCTime end start)) <> "]"
+        liftIO . logf $ msg <> m <> " [" <> pack (show (diffUTCTime end start)) <> "]"
 
 -- | Output a logging message both before an action begins, and after it ends,
 --   reporting the total length of time.  If an exception occurred, it is also
 --   reported.
-timedLog :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
+timedLog :: (MonadBaseControl IO m, MonadIO m)
          => Text -> m a -> m a
 timedLog = doTimedLog log True
 
-timedLog' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
+timedLog' :: (MonadBaseControl IO m, MonadIO m)
           => Text -> m a -> m a
 timedLog' msg f = doTimedLog log True msg f >>= (<$ flushLog)
 
-timedLogS :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
+timedLogS :: (MonadBaseControl IO m, MonadIO m)
           => Text -> Text -> m a -> m a
 timedLogS src = doTimedLog (logS src) True
 
-timedLogS' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
+timedLogS' :: (MonadBaseControl IO m, MonadIO m)
            => Text -> Text -> m a -> m a
 timedLogS' src msg f = doTimedLog (logS src) True msg f >>= (<$ flushLog)
 
 -- | Like 'timedLog', except that it does only logs when the action has
 --   completed or failed after it is done.
-timedLogEnd :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
+timedLogEnd :: (MonadBaseControl IO m, MonadIO m)
           => Text -> m a -> m a
 timedLogEnd = doTimedLog log False
 
-timedLogEnd' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
+timedLogEnd' :: (MonadBaseControl IO m, MonadIO m)
              => Text -> m a -> m a
 timedLogEnd' msg f = doTimedLog log False msg f >>= (<$ flushLog)
 
-timedLogEndS :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
+timedLogEndS :: (MonadBaseControl IO m, MonadIO m)
              => Text -> Text -> m a -> m a
 timedLogEndS src = doTimedLog (logS src) False
 
-timedLogEndS' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
+timedLogEndS' :: (MonadBaseControl IO m, MonadIO m)
               => Text -> Text -> m a -> m a
 timedLogEndS' src msg f = doTimedLog (logS src) False msg f >>= (<$ flushLog)
 
 -- | A debug variant of 'timedLog'.
-timedDebug :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
+timedDebug :: (MonadBaseControl IO m, MonadIO m)
            => Text -> m a -> m a
 timedDebug = doTimedLog debug True
 
-timedDebug' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
+timedDebug' :: (MonadBaseControl IO m, MonadIO m)
              => Text -> m a -> m a
 timedDebug' msg f = doTimedLog debug True msg f >>= (<$ flushLog)
 
-timedDebugS :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
+timedDebugS :: (MonadBaseControl IO m, MonadIO m)
             => Text -> Text -> m a -> m a
 timedDebugS src = doTimedLog (debugS src) True
 
-timedDebugS' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
+timedDebugS' :: (MonadBaseControl IO m, MonadIO m)
              => Text -> Text -> m a -> m a
 timedDebugS' src msg f = doTimedLog (debugS src) True msg f >>= (<$ flushLog)
 
-timedDebugEnd :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
+timedDebugEnd :: (MonadBaseControl IO m, MonadIO m)
               => Text -> m a -> m a
 timedDebugEnd = doTimedLog debug False
 
-timedDebugEnd' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
+timedDebugEnd' :: (MonadBaseControl IO m, MonadIO m)
                => Text -> m a -> m a
 timedDebugEnd' msg f = doTimedLog debug False msg f >>= (<$ flushLog)
 
-timedDebugEndS :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
+timedDebugEndS :: (MonadBaseControl IO m, MonadIO m)
                => Text -> Text -> m a -> m a
 timedDebugEndS src = doTimedLog (debugS src) False
 
-timedDebugEndS' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m)
+timedDebugEndS' :: (MonadBaseControl IO m, MonadIO m)
                 => Text -> Text -> m a -> m a
 timedDebugEndS' src msg f = doTimedLog (debugS src) False msg f >>= (<$ flushLog)
