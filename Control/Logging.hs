@@ -73,6 +73,9 @@ import Data.Monoid
 import Data.Text as T
 import Data.Text.Encoding as T
 import Data.Time
+#if !MIN_VERSION_time (1,5,0)
+import System.Locale (defaultTimeLocale)
+#endif
 import Debug.Trace
 import Prelude hiding (log)
 import System.IO.Unsafe
