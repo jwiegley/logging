@@ -3,7 +3,8 @@
 
 -- | Quick example of how to use this module:
 --
--- @import Control.Logging
+-- @
+-- import Control.Logging
 --
 -- main = withStdoutLogging $ do
 --     log "This is a log message!"
