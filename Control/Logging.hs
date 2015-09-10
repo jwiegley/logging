@@ -187,12 +187,6 @@ flushLog = liftIO $ do
 log :: Text -> IO ()
 log = loggingLogger LevelInfo ""
 
-logWarn :: Text -> Text -> IO ()
-logWarn = loggingLogger LevelWarn
-
-logDebug :: Text -> Text -> IO ()
-logDebug = loggingLogger LevelDebug
-
 logError :: Text -> Text -> IO ()
 logError = loggingLogger LevelError
 
@@ -208,10 +202,10 @@ logS' :: MonadIO m => Text -> Text -> m ()
 logS' src msg = (liftIO $ logS src msg) >> flushLog
 
 debug :: Text -> IO ()
-debug = logDebug ""
+debug = debugS ""
 
 debugS :: Text -> Text -> IO ()
-debugS = logDebug
+debugS = loggingLogger LevelDebug
 
 debug' :: MonadIO m => Text -> m ()
 debug' msg = (liftIO $ debug msg) >> flushLog
@@ -220,10 +214,10 @@ debugS' :: MonadIO m => Text -> Text -> m ()
 debugS' src msg = (liftIO $ debugS src msg) >> flushLog
 
 warn :: Text -> IO ()
-warn = logWarn ""
+warn = warnS ""
 
 warnS :: Text -> Text -> IO ()
-warnS = logWarn
+warnS = loggingLogger LevelWarn
 
 warn' :: MonadIO m => Text -> m ()
 warn' msg = (liftIO $ warn msg) >> flushLog
@@ -247,37 +241,37 @@ errorSL' src str =
     error (unsafePerformIO (logError src str >> flushLog) `seq` unpack str)
 
 traceL :: Text -> a -> a
-traceL str = trace (unsafePerformIO (logDebug "" str) `seq` unpack str)
+traceL str = trace (unsafePerformIO (debug str) `seq` unpack str)
 
 traceL' :: Text -> a -> a
-traceL' str = trace (unsafePerformIO (logDebug "" str >> flushLog) `seq` unpack str)
+traceL' str = trace (unsafePerformIO (debug str >> flushLog) `seq` unpack str)
 
 traceSL :: Text -> Text -> a -> a
-traceSL src str = trace (unsafePerformIO (logDebug src str) `seq` unpack str)
+traceSL src str = trace (unsafePerformIO (debugS src str) `seq` unpack str)
 
 traceSL' :: Text -> Text -> a -> a
 traceSL' src str =
-    trace (unsafePerformIO (logDebug src str >> flushLog) `seq` unpack str)
+    trace (unsafePerformIO (debugS src str >> flushLog) `seq` unpack str)
 
 traceShowL :: Show a => a -> a1 -> a1
 traceShowL x =
     let s = show x
-    in trace (unsafePerformIO (logDebug "" (pack s)) `seq` s)
+    in trace (unsafePerformIO (debug (pack s)) `seq` s)
 
 traceShowL' :: Show a => a -> a1 -> a1
 traceShowL' x =
     let s = show x
-    in trace (unsafePerformIO (logDebug "" (pack s) >> flushLog) `seq` s)
+    in trace (unsafePerformIO (debug (pack s) >> flushLog) `seq` s)
 
 traceShowSL :: Show a => Text -> a -> a1 -> a1
 traceShowSL src x =
     let s = show x
-    in trace (unsafePerformIO (logDebug src (pack s)) `seq` s)
+    in trace (unsafePerformIO (debugS src (pack s)) `seq` s)
 
 traceShowSL' :: Show a => Text -> a -> a1 -> a1
 traceShowSL' src x =
     let s = show x
-    in trace (unsafePerformIO (logDebug src (pack s) >> flushLog) `seq` s)
+    in trace (unsafePerformIO (debugS src (pack s) >> flushLog) `seq` s)
 
 doTimedLog :: (MonadBaseControl IO m, MonadIO m)
          => (Text -> IO ()) -> Bool -> Text -> m a -> m a
