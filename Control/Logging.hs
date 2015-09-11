@@ -60,6 +60,7 @@ module Control.Logging
     , setLogLevel
     , setLogTimeFormat
     , setDebugSourceRegex
+    , LogLevel (..)
     ) where
 
 import Control.Exception.Lifted
