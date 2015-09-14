@@ -3,7 +3,6 @@ module Main where
 import Control.Concurrent
 import Control.Exception
 import Control.Logging
-import Data.Text (Text)
 import Prelude hiding (log)
 import Test.Hspec
 
@@ -26,11 +25,15 @@ main = hspec $ do
 
         it "supports setting log levels" $ do
              setLogLevel LevelWarn
+
              withStdoutLogging $ do
                  debugS "Set LogLevel test" "This is an unshown debug message"
                  logS "Set LogLevel test" "This is an unshown info message"
                  warnS "Set LogLevel test" "This is a shown info message"
-                 loggingLogger LevelError "Set LogLevel test" ("This is a shown error message" :: Text)
+                 _ <- tryAny $ errorSL "Set LogLevel test" "This is a shown error message"
+                 return ()
+
+             -- setting the log level back to debug so that following tests run
              setLogLevel LevelDebug
 
         it "supports using debug classes" $ do
@@ -38,5 +41,3 @@ main = hspec $ do
             withStdoutLogging $ do
                 debugS "foo" "This is a foo message"
                 debugS "foo.bar" "This is a foo.bar message"
-
-

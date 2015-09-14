@@ -1,5 +1,5 @@
 Name:                logging
-Version:             3.0.1
+Version:             3.0.2
 Synopsis:            Simplified logging in IO for application writers.
 License-file:        LICENSE
 License:             MIT
@@ -66,6 +66,5 @@ test-suite test
       , logging
       , unix                 >= 2.5.1.1
       , hspec                >= 1.4
-      , text
     default-extensions:
         OverloadedStrings
