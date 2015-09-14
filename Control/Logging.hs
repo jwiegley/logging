@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -Wall -fno-warn-orphans #-}
-{-# LANGUAGE CPP #-}
 
 -- | Quick example of how to use this module:
 --
@@ -74,9 +73,7 @@ import Data.Monoid
 import Data.Text as T
 import Data.Text.Encoding as T
 import Data.Time
-#if !MIN_VERSION_time (1,5,0)
-import System.Locale (defaultTimeLocale)
-#endif
+import Data.Time.Locale.Compat (defaultTimeLocale)
 import Debug.Trace
 import Prelude hiding (log)
 import System.IO.Unsafe
