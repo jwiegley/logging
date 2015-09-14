@@ -3,6 +3,7 @@ module Main where
 import Control.Concurrent
 import Control.Exception
 import Control.Logging
+import Data.Text (Text)
 import Prelude hiding (log)
 import Test.Hspec
 
@@ -11,8 +12,10 @@ tryAny = try
 
 main :: IO ()
 main = hspec $ do
+
     describe "simple logging" $ do
-        it "logs output" $ (withStdoutLogging :: IO () -> IO ())  $ do
+
+        it "logs output" $ withStdoutLogging $ do
             log "Hello, world!"
             warnS "test-suite" "you've been warned"
             timedLog "Did a good thing" $ threadDelay 100000
@@ -21,8 +24,19 @@ main = hspec $ do
             _ <- tryAny $ errorL "Uh oh"
             return ()
 
+        it "supports setting log levels" $ do
+             setLogLevel LevelWarn
+             withStdoutLogging $ do
+                 debugS "Set LogLevel test" "This is an unshown debug message"
+                 logS "Set LogLevel test" "This is an unshown info message"
+                 warnS "Set LogLevel test" "This is a shown info message"
+                 loggingLogger LevelError "Set LogLevel test" ("This is a shown error message" :: Text)
+             setLogLevel LevelDebug
+
         it "supports using debug classes" $ do
             setDebugSourceRegex "foo\\..*"
             withStdoutLogging $ do
                 debugS "foo" "This is a foo message"
                 debugS "foo.bar" "This is a foo.bar message"
+
+
