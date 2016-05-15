@@ -129,7 +129,7 @@ loggingLogger !lvl !src str = do
         mre <- readIORef debugSourceRegexp
         let willLog = case mre of
                 Nothing -> True
-                Just re -> isJust (match re (encodeUtf8 src) [])
+                Just re -> lvl /= LevelDebug || isJust (match re (encodeUtf8 src) [])
         when willLog $ do
             now <- getCurrentTime
             fmt <- readIORef logTimeFormat

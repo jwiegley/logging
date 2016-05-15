@@ -39,5 +39,9 @@ main = hspec $
         it "supports using debug classes" $ do
             setDebugSourceRegex "foo\\..*"
             withStdoutLogging $ do
-                debugS "foo" "This is a foo message"
-                debugS "foo.bar" "This is a foo.bar message"
+                debugS "foo" "This is an unshown debug message"
+                debugS "foo.bar" "This is a shown debug message"
+                -- checking that non-debug messages aren't filtered
+                logS "bar" "This is a shown log message"
+                logS "foo.bar" "This is a shown log message"
+                warnS "foo" "This is a shown warn message"
