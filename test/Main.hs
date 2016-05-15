@@ -10,7 +10,7 @@ tryAny :: IO a -> IO (Either SomeException a)
 tryAny = try
 
 main :: IO ()
-main = hspec $ do
+main = hspec $
 
     describe "simple logging" $ do
 
