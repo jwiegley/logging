@@ -199,10 +199,10 @@ logS = loggingLogger LevelInfo
 -- | The apostrophe varients of the logging functions flush the log after each
 --   message.
 log' :: MonadIO m => Text -> m ()
-log' msg = (liftIO $ log msg) >> flushLog
+log' msg = liftIO (log msg) >> flushLog
 
 logS' :: MonadIO m => Text -> Text -> m ()
-logS' src msg = (liftIO $ logS src msg) >> flushLog
+logS' src msg = liftIO (logS src msg) >> flushLog
 
 debug :: Text -> IO ()
 debug = debugS ""
@@ -211,10 +211,10 @@ debugS :: Text -> Text -> IO ()
 debugS = loggingLogger LevelDebug
 
 debug' :: MonadIO m => Text -> m ()
-debug' msg = (liftIO $ debug msg) >> flushLog
+debug' msg = liftIO (debug msg) >> flushLog
 
 debugS' :: MonadIO m => Text -> Text -> m ()
-debugS' src msg = (liftIO $ debugS src msg) >> flushLog
+debugS' src msg = liftIO (debugS src msg) >> flushLog
 
 warn :: Text -> IO ()
 warn = warnS ""
@@ -223,10 +223,10 @@ warnS :: Text -> Text -> IO ()
 warnS = loggingLogger LevelWarn
 
 warn' :: MonadIO m => Text -> m ()
-warn' msg = (liftIO $ warn msg) >> flushLog
+warn' msg = liftIO (warn msg) >> flushLog
 
 warnS' :: MonadIO m => Text -> Text -> m ()
-warnS' src msg = (liftIO $ warnS src msg) >> flushLog
+warnS' src msg = liftIO (warnS src msg) >> flushLog
 
 -- | A logging variant of 'error' which uses 'unsafePerformIO' to output a log
 --   message before calling 'error'.
