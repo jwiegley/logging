@@ -78,7 +78,7 @@ import Debug.Trace
 import Prelude hiding (log)
 import System.IO.Unsafe
 import System.Log.FastLogger
-import Text.Regex.PCRE.Light
+import Text.Regex (Regex, mkRegex, matchRegex)
 
 data LogLevel = LevelDebug | LevelInfo | LevelWarn | LevelError | LevelOther Text
     deriving (Eq, Prelude.Show, Prelude.Read, Ord)
@@ -118,9 +118,8 @@ setDebugSourceRegex :: String -> IO ()
 setDebugSourceRegex =
     atomicWriteIORef debugSourceRegexp
         . Just
-        . flip compile []
-        . encodeUtf8
-        . T.pack
+        . mkRegex
+
 
 loggingLogger :: ToLogStr msg => LogLevel -> LogSource -> msg -> IO ()
 loggingLogger !lvl !src str = do
@@ -129,7 +128,7 @@ loggingLogger !lvl !src str = do
         mre <- readIORef debugSourceRegexp
         let willLog = case mre of
                 Nothing -> True
-                Just re -> lvl /= LevelDebug || isJust (match re (encodeUtf8 src) [])
+                Just re -> lvl /= LevelDebug || isJust (matchRegex re (T.unpack src))
         when willLog $ do
             now <- getCurrentTime
             fmt <- readIORef logTimeFormat
