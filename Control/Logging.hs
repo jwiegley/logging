@@ -101,7 +101,7 @@ logSet = unsafePerformIO $
 
 logTimeFormat :: IORef String
 {-# NOINLINE logTimeFormat #-}
-logTimeFormat = unsafePerformIO $ newIORef "%Y %b-%d %H:%M:%S%q"
+logTimeFormat = unsafePerformIO $ newIORef "%T"
 
 -- | Set the format used for log timestamps.
 setLogTimeFormat :: String -> IO ()
@@ -132,10 +132,7 @@ loggingLogger !lvl !src str = do
         when willLog $ do
             now <- getCurrentTime
             fmt <- readIORef logTimeFormat
-            let stamp' = formatTime defaultTimeLocale fmt now
-                -- stripping off the typically all-0 end of the 12-digit
-                -- picosecond section of the `formatTime` output
-                stamp = Prelude.take (Prelude.length stamp' - 6) stamp'
+            let stamp = formatTime defaultTimeLocale fmt now
             set <- readIORef logSet
             pushLogStr set
                 $ toLogStr (stamp ++ " " ++ renderLevel lvl
