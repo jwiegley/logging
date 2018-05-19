@@ -58,7 +58,7 @@ Library
 test-suite test
     hs-source-dirs: test
     default-language: Haskell2010
-    main-is: main.hs
+    main-is: Main.hs
     type: exitcode-stdio-1.0
     ghc-options: -Wall -threaded
     build-depends:
