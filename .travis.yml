@@ -1,5 +1,24 @@
-language: haskell
+language: nix
 
-ghc:
-  - 7.6
-  - 7.8
+sudo: true
+
+git:
+  depth: 1
+
+env:
+  global:
+  matrix:
+    - GHCVERSION=ghc802
+    - GHCVERSION=ghc822
+    - GHCVERSION=ghc842
+
+matrix:
+  allow_failures:
+  exclude:
+
+script:
+  - nix-build --argstr compiler $GHCVERSION
+
+branches:
+  only:
+    - master
