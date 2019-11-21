@@ -53,7 +53,7 @@ Library
     default-extensions:
         BangPatterns
         FlexibleContexts
-        OverloadedStrings
+        -- OverloadedStrings
 
 test-suite test
     hs-source-dirs: test
