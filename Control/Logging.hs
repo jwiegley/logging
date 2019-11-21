@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wall -fno-warn-orphans #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 -- | Quick example of how to use this module:
 --
