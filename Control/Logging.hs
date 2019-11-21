@@ -74,7 +74,6 @@ import Data.Text as T
 import Data.Text.Encoding as T
 import Data.Time
 import Data.Time.Locale.Compat (defaultTimeLocale)
-import Debug.Trace
 import Prelude hiding (log)
 import System.IO.Unsafe
 import System.Log.FastLogger
@@ -243,37 +242,37 @@ errorSL' src str =
     error (unsafePerformIO (logError src str >> flushLog) `seq` unpack str)
 
 traceL :: Text -> a -> a
-traceL str = trace (unsafePerformIO (debug str) `seq` unpack str)
+traceL str x = unsafePerformIO (debug str) `seq` x
 
 traceL' :: Text -> a -> a
-traceL' str = trace (unsafePerformIO (debug str >> flushLog) `seq` unpack str)
+traceL' str x = unsafePerformIO (debug str >> flushLog) `seq` x
 
 traceSL :: Text -> Text -> a -> a
-traceSL src str = trace (unsafePerformIO (debugS src str) `seq` unpack str)
+traceSL src str x = unsafePerformIO (debugS src str) `seq` x
 
 traceSL' :: Text -> Text -> a -> a
-traceSL' src str =
-    trace (unsafePerformIO (debugS src str >> flushLog) `seq` unpack str)
+traceSL' src str x =
+    unsafePerformIO (debugS src str >> flushLog) `seq` x
 
-traceShowL :: Show a => a -> a1 -> a1
+traceShowL :: Show a => a -> a
 traceShowL x =
     let s = show x
-    in trace (unsafePerformIO (debug (pack s)) `seq` s)
+    in unsafePerformIO (debug (pack s)) `seq` x
 
-traceShowL' :: Show a => a -> a1 -> a1
+traceShowL' :: Show a => a -> a
 traceShowL' x =
     let s = show x
-    in trace (unsafePerformIO (debug (pack s) >> flushLog) `seq` s)
+    in unsafePerformIO (debug (pack s) >> flushLog) `seq` x
 
-traceShowSL :: Show a => Text -> a -> a1 -> a1
+traceShowSL :: Show a => Text -> a -> a
 traceShowSL src x =
     let s = show x
-    in trace (unsafePerformIO (debugS src (pack s)) `seq` s)
+    in unsafePerformIO (debugS src (pack s)) `seq` x
 
-traceShowSL' :: Show a => Text -> a -> a1 -> a1
+traceShowSL' :: Show a => Text -> a -> a
 traceShowSL' src x =
     let s = show x
-    in trace (unsafePerformIO (debugS src (pack s) >> flushLog) `seq` s)
+    in unsafePerformIO (debugS src (pack s) >> flushLog) `seq` x
 
 doTimedLog :: (MonadBaseControl IO m, MonadIO m)
            => (Text -> IO ()) -> Bool -> Text -> m a -> m a
