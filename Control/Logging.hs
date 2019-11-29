@@ -72,7 +72,6 @@ import Data.IORef
 import Data.Maybe (isJust)
 import Data.Monoid
 import Data.Text as T
-import Data.Text.Encoding as T
 import Data.Time
 import Data.Time.Locale.Compat (defaultTimeLocale)
 import Prelude hiding (log)
