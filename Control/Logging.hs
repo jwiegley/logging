@@ -130,7 +130,7 @@ loggingLogger !lvl !src str = do
                 Nothing -> True
                 Just re -> lvl /= LevelDebug || isJust (matchRegex re (T.unpack src))
         when willLog $ do
-            now <- getCurrentTime
+            now <- getZonedTime
             fmt <- readIORef logTimeFormat
             let stamp = formatTime defaultTimeLocale fmt now
             set <- readIORef logSet
