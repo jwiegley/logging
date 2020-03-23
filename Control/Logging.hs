@@ -101,7 +101,7 @@ logSet = unsafePerformIO $
 
 logTimeFormat :: IORef String
 {-# NOINLINE logTimeFormat #-}
-logTimeFormat = unsafePerformIO $ newIORef "%T"
+logTimeFormat = unsafePerformIO $ newIORef "%F %T"
 
 -- | Set the format used for log timestamps.
 setLogTimeFormat :: String -> IO ()
