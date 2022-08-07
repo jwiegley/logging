@@ -72,7 +72,6 @@ import Data.IORef
 import Data.Maybe (isJust)
 import Data.Monoid
 import Data.Text as T
-import Data.Text.Encoding as T
 import Data.Time
 import Data.Time.Locale.Compat (defaultTimeLocale)
 import Prelude hiding (log)
@@ -101,7 +100,7 @@ logSet = unsafePerformIO $
 
 logTimeFormat :: IORef String
 {-# NOINLINE logTimeFormat #-}
-logTimeFormat = unsafePerformIO $ newIORef "%T"
+logTimeFormat = unsafePerformIO $ newIORef "%F %T"
 
 -- | Set the format used for log timestamps.
 setLogTimeFormat :: String -> IO ()
@@ -130,7 +129,7 @@ loggingLogger !lvl !src str = do
                 Nothing -> True
                 Just re -> lvl /= LevelDebug || isJust (matchRegex re (T.unpack src))
         when willLog $ do
-            now <- getCurrentTime
+            now <- getZonedTime
             fmt <- readIORef logTimeFormat
             let stamp = formatTime defaultTimeLocale fmt now
             set <- readIORef logSet
