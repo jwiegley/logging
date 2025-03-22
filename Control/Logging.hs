@@ -256,22 +256,22 @@ traceSL' src str x =
 
 traceShowL :: Show a => a -> a
 traceShowL x =
-    let s = show x
+    let s = Prelude.show x
     in unsafePerformIO (debug (pack s)) `seq` x
 
 traceShowL' :: Show a => a -> a
 traceShowL' x =
-    let s = show x
+    let s = Prelude.show x
     in unsafePerformIO (debug (pack s) >> flushLog) `seq` x
 
 traceShowSL :: Show a => Text -> a -> a
 traceShowSL src x =
-    let s = show x
+    let s = Prelude.show x
     in unsafePerformIO (debugS src (pack s)) `seq` x
 
 traceShowSL' :: Show a => Text -> a -> a
 traceShowSL' src x =
-    let s = show x
+    let s = Prelude.show x
     in unsafePerformIO (debugS src (pack s) >> flushLog) `seq` x
 
 doTimedLog :: (MonadBaseControl IO m, MonadIO m)
@@ -280,7 +280,7 @@ doTimedLog logf wrapped msg f = do
     start <- liftIO getCurrentTime
     when wrapped $ (liftIO . logf) $ msg <> "..."
     res <- f `catch` \e -> do
-        let str = show (e :: SomeException)
+        let str = Prelude.show (e :: SomeException)
         wrapup start $ pack $
             if wrapped
             then "...FAIL (" ++ str ++ ")"
@@ -291,7 +291,8 @@ doTimedLog logf wrapped msg f = do
   where
     wrapup start m = do
         end <- liftIO getCurrentTime
-        liftIO . logf $ msg <> m <> " [" <> pack (show (diffUTCTime end start)) <> "]"
+        liftIO . logf $
+          msg <> m <> " [" <> pack (Prelude.show (diffUTCTime end start)) <> "]"
 
 -- | Output a logging message both before an action begins, and after it ends,
 --   reporting the total length of time.  If an exception occurred, it is also

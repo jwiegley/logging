@@ -1,5 +1,5 @@
 Name:                logging
-Version:             3.0.5
+Version:             3.0.6
 Synopsis:            Simplified logging in IO for application writers.
 License-file:        LICENSE
 License:             MIT
